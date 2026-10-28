@@ -1,3 +1,7 @@
+
+
+# Local settings that may contain secrets
+appsettings.Development.json
 appsettings.json
 
 ## Ignore Visual Studio temporary files, build results, and
@@ -406,3 +410,6 @@ FodyWeavers.xsd
 azure-pipelines.yml
 
 /.vs
+
+# Local settings that may contain secrets
+appsettings.Development.json
