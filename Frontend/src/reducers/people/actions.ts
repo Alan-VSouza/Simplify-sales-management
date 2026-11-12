@@ -1,6 +1,7 @@
 import { KnownAction } from "@reducers/people/interface";
 import { AppThunkAction } from "@store/index";
 import { IPerson } from "./interface";
+import { API_URL } from "../../config/api";
 
 export const actionsCreators = {
   GetAll: (force: boolean = false): AppThunkAction<KnownAction> => (dispatch, getState) => {
@@ -8,7 +9,7 @@ export const actionsCreators = {
     if (state && (state.people.people.length === 0 || force)) {
       dispatch({ type: "PEOPLE_REQUEST_GETALL" });
 
-      fetch('https://localhost:7159/api/People')
+      fetch(`${API_URL}/api/People`)
         .then((response) => response.json())
         .then((data: IPerson[]) => {
           dispatch({ type: "PEOPLE_RECEIVE_GETALL", data });
@@ -22,7 +23,7 @@ export const actionsCreators = {
   Delete: (id: number): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "PEOPLE_REQUEST_DELETE" });
 
-    fetch(`https://localhost:7159/api/People/${id}`, { method: "DELETE" })
+    fetch(`${API_URL}/api/People/${id}`, { method: "DELETE" })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Erro ao deletar pessoa");
@@ -37,7 +38,7 @@ export const actionsCreators = {
   Add: (person: IPerson): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "PEOPLE_REQUEST_ADD" });
 
-    fetch('https://localhost:7159/api/People', {
+    fetch(`${API_URL}/api/People`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(person),
@@ -59,7 +60,7 @@ export const actionsCreators = {
   Edit: (person: IPerson): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "PEOPLE_REQUEST_EDIT" });
 
-    fetch(`https://localhost:7159/api/People/${person.id}`, {
+    fetch(`${API_URL}/api/People/${person.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(person),

@@ -10,6 +10,7 @@ export interface ProductsState {
     category: string;
     brand: string;
     quantity: number;
+    factoryValue: number;
     salesValue: number;
     active: boolean;
     createAt: Date;

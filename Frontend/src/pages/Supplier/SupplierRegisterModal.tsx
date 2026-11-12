@@ -8,11 +8,11 @@ import FormHelperText from '@mui/material/FormHelperText';
 import MuiCard from '@mui/material/Card';
 import { toast } from 'react-toastify';
 import { validateCPF, validateCNPJ, validatePhone, validateEmail } from '@pages/utils/validators';
-import { connect } from 'react-redux';
-import { ApplicationState } from '@store/index';
+import { connect, ConnectedProps } from 'react-redux';
+import { Dispatch } from 'redux';
+import { AppDispatch, ApplicationState } from '@store/index';
 import { IPerson } from '@reducers/people/interface';
 import * as PeopleActions from '@reducers/people/actions';
-import { bindActionCreators } from 'redux';
 
 const fadeIn = keyframes`
   from {
@@ -64,15 +64,14 @@ interface Person {
   type: number;
 }
 
-interface PersonRegisterModalProps {
+interface OwnProps {
   open: boolean;
   onClose: () => void;
   person?: Person | null;
-  defaultType: number; 
-  people: IPerson[]; 
-  addPerson: (person: IPerson) => Promise<void>; 
-  editPerson: (person: IPerson) => Promise<void>; 
+  defaultType: number;
 }
+
+type PersonRegisterModalProps = OwnProps & ConnectedProps<typeof connector>;
 
 const PersonRegisterModal: React.FC<PersonRegisterModalProps> = ({
   open,
@@ -374,9 +373,14 @@ const mapStateToProps = (state: ApplicationState) => ({
   getAllStatus: state.people.getAllStatus,
 });
 
-const mapDispatchToProps = (dispatch: any) => ({
-  addPerson: bindActionCreators(PeopleActions.actionsCreators.Add, dispatch),
-  editPerson: bindActionCreators(PeopleActions.actionsCreators.Edit, dispatch),
-});
+const mapDispatchToProps = (dispatch: Dispatch) => {
+  const thunkDispatch = dispatch as unknown as AppDispatch;
+  return {
+    addPerson: (person: IPerson) => thunkDispatch(PeopleActions.actionsCreators.Add(person)),
+    editPerson: (person: IPerson) => thunkDispatch(PeopleActions.actionsCreators.Edit(person)),
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(PersonRegisterModal);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export default connector(PersonRegisterModal);

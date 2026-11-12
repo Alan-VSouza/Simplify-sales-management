@@ -7,9 +7,8 @@ import Autocomplete from '@mui/material/Autocomplete';
 import MuiCard from '@mui/material/Card';
 import { toast } from 'react-toastify'; 
 import 'react-toastify/dist/ReactToastify.css';
-import { useDispatch, useSelector } from 'react-redux';
-import { actionsCreators } from "@reducers/products";
-import { ApplicationState, IProduct } from "@store/index";
+import { actionsCreators, IProduct } from "@reducers/products";
+import { useAppDispatch } from "@store/hooks";
 
 const fadeIn = keyframes`
   from {
@@ -59,9 +58,7 @@ interface ProductRegisterModalProps {
 }
 
 const ProductRegisterModal: React.FC<ProductRegisterModalProps> = ({ open, onClose, product }) => {
-  const dispatch = useDispatch();
-
-  const productsState = useSelector((state: ApplicationState) => state.products);
+  const dispatch = useAppDispatch();
 
   const [form, setForm] = useState<IProduct>({
     id: 0, 
@@ -111,7 +108,7 @@ const ProductRegisterModal: React.FC<ProductRegisterModalProps> = ({ open, onClo
     }
   }, [product, open]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm({
       ...form,

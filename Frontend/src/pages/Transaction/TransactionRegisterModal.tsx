@@ -10,6 +10,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { ApplicationState } from "@store/index";
 import { bindActionCreators } from "redux";
 import * as TransactionActions from "@reducers/transaction/actions";
+import { NewTransaction } from "@reducers/transaction/interface";
 
 const fadeIn = keyframes`
   from {
@@ -69,14 +70,25 @@ interface TransactionRegisterModalProps extends PropsFromRedux {
       id: number;
       name: string;
       salesValue: number;
-      amount: number;
+      quantity: number;
       discount?: number;
     }[];
     totalValue: number;
     totalDiscount: number;
-    person?: { id: number; name: string };
+    person?: { id: number; name: string } | null;
   };
   clearCart: () => void;
+}
+
+interface TransactionForm {
+  transactionAt: string;
+  personId: number | "";
+  type: string;
+  totalValue: number;
+  totalDiscount: number;
+  finalValue: number;
+  paymentMethod: string;
+  active: boolean;
 }
 
 const getLocalDateTime = () => {
@@ -91,7 +103,7 @@ const TransactionRegisterModal: React.FC<TransactionRegisterModalProps> = ({
   clearCart,
   actions,
 }) => {
-  const initialData = {
+  const initialData: TransactionForm = {
     transactionAt: getLocalDateTime(),
     personId: transactionData?.person?.id || "",
     type: "",
@@ -103,7 +115,7 @@ const TransactionRegisterModal: React.FC<TransactionRegisterModalProps> = ({
     active: true,
   };
 
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState<TransactionForm>(initialData);
 
   useEffect(() => {
     if (open) {
@@ -122,10 +134,10 @@ const TransactionRegisterModal: React.FC<TransactionRegisterModalProps> = ({
     }
   }, [open, transactionData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
-    setFormData((prev) => {
+    setFormData((prev): TransactionForm => {
       const updatedValue =
         name === "totalDiscount" || name === "finalValue"
           ? Number(value)
@@ -135,12 +147,12 @@ const TransactionRegisterModal: React.FC<TransactionRegisterModalProps> = ({
         const newFinalValue = prev.totalValue - Number(value);
         return {
           ...prev,
-          [name]: updatedValue,
+          totalDiscount: Number(value),
           finalValue: newFinalValue < 0 ? 0 : newFinalValue,
         };
       }
 
-      return { ...prev, [name]: updatedValue };
+      return { ...prev, [name]: updatedValue } as TransactionForm;
     });
   };
 
@@ -159,7 +171,7 @@ const TransactionRegisterModal: React.FC<TransactionRegisterModalProps> = ({
       return;
     }
   
-    const transactionPayload = {
+    const transactionPayload: NewTransaction = {
       transactionAt: formData.transactionAt,
       personId: Number(formData.personId),
       type: Number(formData.type),

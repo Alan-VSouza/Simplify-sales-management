@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import image from "@components/close-up-picture-gardener-s-hand-holding-sapling-plant.jpg";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { API_URL } from "../../config/api";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const response = await fetch("https://localhost:7159/api/User/Login", {
+      const response = await fetch(`${API_URL}/api/User/Login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Typography,Grid,Card,CardContent,Skeleton,Box,Dialog,DialogTitle,DialogContent,DialogActions,Button, } from "@mui/material";
 import { BarChart,Bar,Tooltip,ResponsiveContainer,CartesianGrid,XAxis,YAxis,Legend,Cell,LabelList, } from "recharts";
+import { API_URL } from "../../config/api";
+import { TransactionType } from "@reducers/transaction/interface";
+import { formatCurrency, formatPercent } from "../../utils/format";
 
 interface ITransaction {
   id: number;
@@ -62,49 +65,32 @@ const Dashboard: React.FC = () => {
     "Total de Compras": "Os custos totais das aquisições.",
   };
 
-  const fetchTransactions = async () => {
-    try {
-      const response = await fetch("https://localhost:7159/api/Transaction");
-      if (!response.ok) {
-        throw new Error("Erro ao buscar transações");
-      }
-      const transactions: ITransaction[] = await response.json();
-      calculateDashboardData(transactions);
-    } catch (error) {
-      console.error("Erro ao carregar transações:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const calculateDashboardData = (transactions: ITransaction[]) => {
     let grossRevenue = 0;
     let totalDiscounts = 0;
-    let netRevenue = 0;
     let totalPurchases = 0;
-    let grossProfit = 0;
-    let grossMargin = 0;
     let totalCosts = 0;
 
-    const activeTransactions = transactions.filter((transaction) => transaction.active);
+    transactions
+      .filter((transaction) => transaction.active)
+      .forEach((transaction) => {
+        if (transaction.type === TransactionType.Sell) {
+          grossRevenue += transaction.totalValue;
+          totalDiscounts += transaction.totalDiscount;
+          // The API stores the product's factory cost in `value` (TransactionService.Create).
+          transaction.transactionsItems.forEach((item) => {
+            totalCosts += item.value * item.amount;
+          });
+        } else if (transaction.type === TransactionType.Buy) {
+          totalPurchases += transaction.finalValue;
+        }
+      });
 
-    activeTransactions.forEach((transaction) => {
-      if (transaction.type === 1) {
-        grossRevenue += transaction.totalValue;
-        totalDiscounts += transaction.totalDiscount;
-        transaction.transactionsItems.forEach((item) => {
-          totalCosts += item.value * item.amount;
-        });
-      } else if (transaction.type === 0) {
-        totalPurchases += transaction.finalValue;
-      }
-    });
+    const netRevenue = grossRevenue - totalDiscounts - totalCosts;
+    const grossProfit = netRevenue - totalPurchases;
+    const grossMargin = grossRevenue !== 0 ? grossProfit / grossRevenue : 0;
 
-    netRevenue = grossRevenue - totalDiscounts - totalCosts;
-    grossProfit = netRevenue - totalPurchases;
-    grossMargin = grossRevenue !== 0 ? (grossProfit / grossRevenue) * 100 : 0;
-
-    setDashboardData({ grossRevenue,totalDiscounts,netRevenue,grossMargin,totalPurchases,grossProfit,});
+    setDashboardData({ grossRevenue, totalDiscounts, netRevenue, grossMargin, totalPurchases, grossProfit });
   };
 
   const dashboardItems = [
@@ -116,11 +102,17 @@ const Dashboard: React.FC = () => {
     { title: "Total de Compras", value: dashboardData.totalPurchases },
   ];
 
-  const barData = dashboardItems.map((item) => ({
-    name: item.title,
-    value: item.value,
-    fill: getBarColor(item.title),
-  }));
+  const formatItemValue = (title: string, value: number) =>
+    title === "Margem Bruta" ? formatPercent(value) : formatCurrency(value);
+
+  // The margin is a percentage, so it stays out of the R$ chart.
+  const barData = dashboardItems
+    .filter((item) => item.title !== "Margem Bruta")
+    .map((item) => ({
+      name: item.title,
+      value: Math.round(item.value * 100) / 100,
+      fill: getBarColor(item.title),
+    }));
 
   const handleOpenModal = (title: string) => {
     setSelectedItem({ title, description: descriptions[title] });
@@ -133,6 +125,20 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/Transaction`);
+        if (!response.ok) {
+          throw new Error("Erro ao buscar transações");
+        }
+        const transactions: ITransaction[] = await response.json();
+        calculateDashboardData(transactions);
+      } catch (error) {
+        console.error("Erro ao carregar transações:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchTransactions();
   }, []);
 
@@ -171,10 +177,11 @@ const Dashboard: React.FC = () => {
                     <Typography variant="subtitle1" color="textSecondary">
                       {item.title}
                     </Typography>
-                    <Typography variant="h4" sx={{ mt: 1 }}>
-                      {item.title === "Margem Bruta"
-                        ? `${item.value.toFixed(2)}%`
-                        : `R$ ${item.value.toFixed(2)}`}
+                    <Typography
+                      variant="h4"
+                      sx={{ mt: 1, color: item.value < 0 ? "error.main" : "text.primary" }}
+                    >
+                      {formatItemValue(item.title, item.value)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -202,14 +209,14 @@ const Dashboard: React.FC = () => {
           <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
+            <YAxis tickFormatter={(value: number) => formatCurrency(value)} width={100} />
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
             <Legend />
-            <Bar dataKey="value">
+            <Bar dataKey="value" name="Valor (R$)">
               {barData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
-              <LabelList dataKey="value" position="top" />
+              <LabelList dataKey="value" position="top" formatter={(value: number) => formatCurrency(value)} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

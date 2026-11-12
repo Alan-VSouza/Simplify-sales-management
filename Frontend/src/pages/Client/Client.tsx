@@ -31,7 +31,7 @@ const AnimatedBox = styled(Box)(({ theme }) => ({
   },
 }));
 
-const CardContainer = styled(Grid)(({ theme }) => ({
+const CardContainer = styled(Grid)(() => ({
   transition: 'opacity 0.5s ease, transform 0.5s ease',
   opacity: 1,
   transform: 'scale(1)',

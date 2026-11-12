@@ -19,13 +19,40 @@ export interface ITransaction {
   updateAt: Date;
 }
 
+/** Mirrors the backend TransactionItem model. */
 export interface ITransactionItem {
   id: number;
   transactionId: number;
   productId: number;
-  quantity: number;
-  unitValue: number;
+  product?: { id: number; name: string } | null;
+  amount: number;
+  /** Factory cost per unit (set by the API from Product.FactoryValue). */
+  value: number;
+  /** Sale price per unit (set by the API from Product.SalesValue). */
+  sellValue: number;
+  discount: number;
+  active: boolean;
+}
+
+/** Payload sent to POST /api/Transaction. */
+export interface NewTransactionItem {
+  productId: number;
+  amount: number;
+  value: number;
+  sellValue: number;
+  discount: number;
+}
+
+export interface NewTransaction {
+  transactionAt: string;
+  personId: number;
+  type: TransactionType;
   totalValue: number;
+  totalDiscount: number;
+  finalValue: number;
+  paymentMethod: PaymentMethod;
+  transactionsItems: NewTransactionItem[];
+  active: boolean;
 }
 
 export interface IPerson {

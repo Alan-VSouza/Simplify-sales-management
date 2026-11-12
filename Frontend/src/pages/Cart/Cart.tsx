@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect } from "react";
-import { Typography,Grid,Card,CardContent,CardMedia,Button,Box,MenuItem,TextField,Divider,Paper,Autocomplete,Alert,} from "@mui/material";
+import { Typography,Grid,Card,CardContent,Button,Box,MenuItem,TextField,Divider,Paper,Autocomplete,Alert,} from "@mui/material";
 import { styled } from "@mui/system";
 import { connect } from "react-redux";
 import { ApplicationState } from "@store/index";
 import { CartState } from "@reducers/cart/interface";
 import { bindActionCreators } from "redux";
 import * as CartActions from "@reducers/cart/actions";
-import productImage from "../../components/Produto.jpg";
+import ProductThumb from "../../components/ProductThumb";
+import { formatCurrency } from "../../utils/format";
 import TransactionRegisterModal from "@pages/Transaction/TransactionRegisterModal";
 import { toast } from "react-toastify";
+import { API_URL } from "../../config/api";
 
 type CartProps = {
   cartState: CartState;
@@ -75,7 +77,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
   useEffect(() => {
     const fetchPersons = async () => {
       try {
-        const response = await fetch("https://localhost:7159/api/People");
+        const response = await fetch(`${API_URL}/api/People`);
         if (!response.ok) throw new Error("Erro ao buscar pessoas");
         const data: Person[] = await response.json();
         setPersons(data);
@@ -299,7 +301,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
           options={filteredPersons}
           getOptionLabel={(option) => option.name}
           value={filteredPersons.find((p) => p.id === selectedPerson) || null}
-          onChange={(event, newValue) => {
+          onChange={(_event, newValue) => {
             setSelectedPerson(newValue ? newValue.id : null);
           }}
           renderInput={(params) => (
@@ -319,13 +321,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
         {cartItems.map((item) => (
           <Grid item key={item.id}>
             <StyledCard>
-              <CardMedia
-                component="img"
-                height="150"
-                image={productImage}
-                alt={`Imagem de ${item.name}`}
-                sx={{ objectFit: "cover" }}
-              />
+              <ProductThumb name={item.name} category={item.category} />
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" gutterBottom>
                   {item.name}
@@ -341,7 +337,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
                   fontWeight="bold"
                   sx={{ mt: 1, textAlign: "center" }}
                 >
-                  Preço Unitário: R$ {item.salesValue.toFixed(2)}
+                  Preço Unitário: {formatCurrency(item.salesValue)}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -349,7 +345,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
                   fontWeight="bold"
                   sx={{ textAlign: "center" }}
                 >
-                  Desconto: R$ {(item.discount || 0).toFixed(2)}
+                  Desconto: {formatCurrency(item.discount)}
                 </Typography>
 
                 <Divider sx={{ my: 2 }} />
@@ -443,7 +439,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
 
       <Box sx={{ mt: 4, textAlign: "center", width: "100%", maxWidth: 600 }}>
         <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Total: R$ {finalTotal.toFixed(2)}
+          Total: {formatCurrency(finalTotal)}
         </Typography>
 
         <Alert severity="info" sx={{ mb: 2 }}>

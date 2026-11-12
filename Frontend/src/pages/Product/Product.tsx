@@ -2,7 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React, { useEffect, useState } from "react";
-import { Typography,Grid,Card,CardContent,CardMedia,Box,IconButton,TextField,Button,Dialog,DialogActions,DialogContent,DialogContentText,DialogTitle,LinearProgress, } from "@mui/material";
+import { Typography,Grid,Card,CardContent,Box,Chip,IconButton,TextField,Tooltip,Button,Dialog,DialogActions,DialogContent,DialogContentText,DialogTitle,LinearProgress, } from "@mui/material";
 import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -13,7 +13,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { styled } from "@mui/system";
 import ProductRegisterModal from "./ProductRegisterModal";
-import productImage from "../../components/Produto.jpg";
+import ProductThumb from "../../components/ProductThumb";
+import { formatCurrency } from "../../utils/format";
 import { connect, ConnectedProps } from "react-redux";
 import { ApplicationState } from "@store/index";
 import { bindActionCreators } from "redux";
@@ -21,6 +22,8 @@ import * as ProductReducer from "@reducers/products";
 import * as CartReducer from "@reducers/cart";
 import { ICartProduct } from "@reducers/cart";
 import { IProduct } from "@reducers/products";
+
+const LOW_STOCK_THRESHOLD = 15;
 
 const connector = connect(
   (state: ApplicationState) => ({
@@ -67,7 +70,7 @@ const MotionCard = styled(motion(Card))(({ theme }) => ({
   },
 }));
 
-const Product: React.FC<PropsFromRedux> = ({ productsState, cartState, actions }) => {
+const Product: React.FC<PropsFromRedux> = ({ productsState, actions }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -223,57 +226,67 @@ const Product: React.FC<PropsFromRedux> = ({ productsState, cartState, actions }
       ) : (
         <Grid container spacing={3}>
           {filteredProducts.map((product) => (
-            <Grid item xs={3} sm={3} md={3} key={product.id}> 
+            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
               <MotionCard
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.1 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.15 }}
                 sx={{
-                  boxShadow: 4,
+                  boxShadow: 3,
                   borderRadius: 2,
+                  overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
+                  height: "100%",
                 }}
               >
-                <CardMedia
-                  component="img"
-                  image={productImage}
-                  alt={product.name}
-                  sx={{ borderRadius: "8px 8px 0 0", height: 150, objectFit: "cover" }}
-                />
-                <CardContent>
-                  <Typography variant="h6">{product.name}</Typography>
-                  <Typography variant="body2">Categoria: {product.category}</Typography>
-                  <Typography variant="body2">Marca: {product.brand}</Typography>
-                  <Typography variant="body1" color="primary">
-                    Preço: R$ {product.salesValue.toFixed(2)}
+                <ProductThumb name={product.name} category={product.category} />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" sx={{ lineHeight: 1.3, mb: 0.5 }}>
+                    {product.name}
                   </Typography>
-                  <Typography variant="body2">Estoque: {product.quantity}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {product.brand ? `${product.brand} · ` : ""}
+                    {product.category}
+                  </Typography>
+                  <Typography variant="h6" color="primary" sx={{ mt: 1.5 }}>
+                    {formatCurrency(product.salesValue)}
+                  </Typography>
+                  <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                    <Typography variant="body2">Estoque: {product.quantity}</Typography>
+                    {product.quantity <= LOW_STOCK_THRESHOLD && (
+                      <Chip label="Estoque baixo" color="warning" size="small" />
+                    )}
+                  </Box>
                 </CardContent>
-                <Box sx={{ p: 2, display: "flex", gap: 1 }}>
-                  <Button
-                    startIcon={<EditIcon />}
-                    variant="contained"
-                    color="warning"
-                    onClick={() => handleOpenModal(product)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    startIcon={<DeleteIcon />}
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleDeleteProduct(product.id, product.name)}
-                  >
-                    Excluir
-                  </Button>
+                <Box sx={{ px: 2, pb: 2, display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Tooltip title="Editar">
+                    <IconButton
+                      aria-label={`Editar ${product.name}`}
+                      color="warning"
+                      onClick={() => handleOpenModal(product)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Excluir">
+                    <IconButton
+                      aria-label={`Excluir ${product.name}`}
+                      color="error"
+                      onClick={() => handleDeleteProduct(product.id, product.name)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
                   <Button
                     startIcon={<AddShoppingCartIcon />}
                     variant="contained"
                     color="success"
-                    onClick={() => handleOpenAddToCartDialog(product)} 
+                    size="small"
+                    sx={{ ml: "auto" }}
+                    disabled={product.quantity <= 0}
+                    onClick={() => handleOpenAddToCartDialog(product)}
                   >
-                    Adicionar
+                    {product.quantity <= 0 ? "Sem estoque" : "Adicionar"}
                   </Button>
                 </Box>
               </MotionCard>

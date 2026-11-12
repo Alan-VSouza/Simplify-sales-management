@@ -21,5 +21,12 @@ export const reducers = {
 };
 
 export interface AppThunkAction<TAction> {
-  (dispatch: (action: TAction) => void, getState: () => ApplicationState): void;
+  (
+    dispatch: (action: TAction | AppThunkAction<TAction>) => void,
+    getState: () => ApplicationState
+  ): void | Promise<void>;
 }
+
+/** Dispatch that accepts both plain actions and thunks (redux-thunk is installed in configureStore). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AppDispatch = (action: { type: string } | AppThunkAction<any>) => void;

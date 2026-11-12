@@ -25,9 +25,11 @@ export const stockReducer: Reducer<StockState | undefined> = (
     case "STOCK_UPDATE_PRODUCT":
       return {
         ...state,
-        stockItems: state.stockItems.map((item) =>
-        item.id === action.id ? action.product : item
-        ),
+        stockItems: state.stockItems.map((item) => {
+          if (item.id !== action.id) return item;
+          if (action.product) return action.product;
+          return action.quantity !== undefined ? { ...item, quantity: action.quantity } : item;
+        }),
       };
       
     case "STOCK_DELETE_PRODUCT":

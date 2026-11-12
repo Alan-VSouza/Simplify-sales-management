@@ -1,10 +1,11 @@
 import { AppThunkAction } from "@store/index";
 import { IStockProduct, KnownAction } from "./interface";
+import { API_URL } from "../../config/api";
 
 export const actionsCreators = {
   GetAllStock: (): AppThunkAction<KnownAction> => async (dispatch) => {
     try {
-      const response = await fetch("https://localhost:7159/api/Product");
+      const response = await fetch(`${API_URL}/api/Product`);
       if (!response.ok) throw new Error("Erro ao buscar estoque");
       const data: IStockProduct[] = await response.json();
 
@@ -16,10 +17,11 @@ export const actionsCreators = {
 
   AddStock: (id: number, quantityToAdd: number): AppThunkAction<KnownAction> => async (dispatch) => {
     try {
-      const response = await fetch(`https://localhost:7159/api/Product/update-stock/${id}`, {
+      const response = await fetch(`${API_URL}/api/Product/update-stock/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantityToAdd }),
+        // The API binds [FromBody] int, so the body must be a bare number, not an object.
+        body: JSON.stringify(quantityToAdd),
       });
 
       if (!response.ok) throw new Error("Erro ao adicionar estoque");
@@ -33,7 +35,7 @@ export const actionsCreators = {
 
   DeleteProduct: (id: number): AppThunkAction<KnownAction> => async (dispatch) => {
     try {
-      const response = await fetch(`https://localhost:7159/api/Product/${id}`, {
+      const response = await fetch(`${API_URL}/api/Product/${id}`, {
         method: "DELETE",
       });
 
@@ -47,7 +49,7 @@ export const actionsCreators = {
   
   UpdateStock: (id: number, updatedData: Partial<IStockProduct>): AppThunkAction<KnownAction> => async (dispatch, getState) => {
     try {
-      const response = await fetch(`https://localhost:7159/api/Product/${id}`, {
+      const response = await fetch(`${API_URL}/api/Product/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),

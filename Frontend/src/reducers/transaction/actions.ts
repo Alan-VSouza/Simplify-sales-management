@@ -1,6 +1,7 @@
 import { AppThunkAction } from "@store/index";
-import { ITransaction, KnownAction } from "./interface";
+import { ITransaction, KnownAction, NewTransaction } from "./interface";
 import { toast } from "react-toastify";
+import { API_URL } from "../../config/api";
 
 export const actionsCreators = {
   GetAll: (force: boolean = false): AppThunkAction<KnownAction> => (dispatch, getState) => {
@@ -8,7 +9,7 @@ export const actionsCreators = {
     if (state && (state.transaction.transactions.length === 0 || force)) {
       dispatch({ type: "TRANSACTION_REQUEST_GETALL" });
 
-      fetch('https://localhost:7159/api/Transaction')
+      fetch(`${API_URL}/api/Transaction`)
         .then((response) => response.json())
         .then((data: ITransaction[]) => {
           dispatch({ type: "TRANSACTION_RECEIVE_GETALL", data });
@@ -19,10 +20,10 @@ export const actionsCreators = {
     }
   },
 
-  Add: (transaction: ITransaction): AppThunkAction<KnownAction> => (dispatch) => {
+  Add: (transaction: NewTransaction): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "TRANSACTION_REQUEST_ADD" });
 
-    fetch('https://localhost:7159/api/Transaction', {
+    fetch(`${API_URL}/api/Transaction`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(transaction),
@@ -44,7 +45,7 @@ export const actionsCreators = {
   Edit: (transaction: ITransaction): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "TRANSACTION_REQUEST_EDIT" });
 
-    fetch(`https://localhost:7159/api/Transaction/${transaction.id}`, {
+    fetch(`${API_URL}/api/Transaction/${transaction.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(transaction),
@@ -66,7 +67,7 @@ export const actionsCreators = {
   Delete: (id: number): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "TRANSACTION_REQUEST_DELETE" });
 
-    fetch(`https://localhost:7159/api/Transaction/${id}`, { method: "DELETE" })
+    fetch(`${API_URL}/api/Transaction/${id}`, { method: "DELETE" })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Erro ao deletar transação");
@@ -78,11 +79,11 @@ export const actionsCreators = {
       });
   },
 
-  ToggleStatus: (id: number, active: boolean): AppThunkAction<KnownAction> => async (dispatch) => {
+  ToggleStatus: (id: number): AppThunkAction<KnownAction> => async (dispatch) => {
     dispatch({ type: "TRANSACTION_REQUEST_EDIT" });
   
     try {
-      const response = await fetch(`https://localhost:7159/api/Transaction/toggle-status/${id}`, {
+      const response = await fetch(`${API_URL}/api/Transaction/toggle-status/${id}`, {
         method: "PUT",
       });
   
@@ -94,9 +95,10 @@ export const actionsCreators = {
       const updatedTransaction: ITransaction = await response.json();
       dispatch({ type: "TRANSACTION_RECEIVE_EDIT", data: updatedTransaction });
       dispatch(actionsCreators.GetAll(true));
-    } catch (error: any) {
-      console.error(`Erro ao alternar o status da transação ${id}:`, error.message);
-      toast.error(`Erro ao alternar status: ${error.message}`, { position: "top-right", autoClose: 3000 });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Erro ao alternar o status da transação ${id}:`, message);
+      toast.error(`Erro ao alternar status: ${message}`, { position: "top-right", autoClose: 3000 });
     }
   },
   

@@ -6,11 +6,10 @@ import { styled } from '@mui/system';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; 
 import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import { bindActionCreators, Dispatch } from 'redux';
 import * as TransactionActions from '@reducers/transaction/actions';
 import { ApplicationState } from '@store/index';
 import { ITransaction } from '@reducers/transaction/interface';
-import TransactionRegisterModal from './TransactionRegisterModal';
 import TransactionViewModal from './TransactionViewModal';
 
 const AnimatedBox = styled(Box)(({ theme }) => ({
@@ -33,14 +32,12 @@ type PropsFromRedux = ReturnType<typeof mapStateToProps> & ReturnType<typeof map
 
 const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, actions }) => {
   const [filteredTransactions, setFilteredTransactions] = useState<ITransaction[]>([]);
-  const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
   const [isViewModalOpen, setViewModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<ITransaction | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
   const [isSearchExpanded, setSearchExpanded] = useState(false);
   const [isAnimating, setAnimating] = useState(false);
-  const [removingTransactionId, setRemovingTransactionId] = useState<number | null>(null);
 
   useEffect(() => {
     if (transactions.length === 0) {
@@ -94,7 +91,7 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
               variant="contained"
               color={active ? 'error' : 'success'}
               onClick={() => {
-                actions.ToggleStatus(id, active); // Atualiza o status da transação
+                actions.ToggleStatus(id); // Atualiza o status da transação
                 closeToast(); // Fecha o toast de confirmação
               }}
               sx={{ textTransform: 'none' }}
@@ -116,15 +113,9 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
   };
 
   const handleCloseModals = () => {
-    setRegisterModalOpen(false);
     setViewModalOpen(false);
     setSelectedTransaction(null);
   };
-
-  const handleTransactionAdded = () => {
-    actions.GetAll(true);
-  };
-
 
   const handleRefresh = () => {
     toast.info('Recarregando transações...', {
@@ -328,18 +319,10 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
         </Typography>
       )}
 
-      <TransactionRegisterModal
-        open={isRegisterModalOpen}
-        onClose={handleCloseModals}
-        transactionData={selectedTransaction || undefined}
-        clearCart={() => actions.ClearCart()}
-        onTransactionAdded={handleTransactionAdded}
-      />
-
       <TransactionViewModal
         open={isViewModalOpen}
         onClose={handleCloseModals}
-        transactionData={selectedTransaction || undefined}
+        transaction={selectedTransaction}
       />
     </Box>
   );
@@ -350,7 +333,7 @@ const mapStateToProps = (state: ApplicationState) => ({
   getAllStatus: state.transaction.getAllStatus,
 });
 
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   actions: bindActionCreators(TransactionActions.actionsCreators, dispatch),
 });
 

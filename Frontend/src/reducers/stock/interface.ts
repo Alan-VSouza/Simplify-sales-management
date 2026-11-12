@@ -21,7 +21,10 @@ export interface GetAllStockAction {
 export interface UpdateStockAction {
   type: "STOCK_UPDATE_PRODUCT";
   id: number;
-  quantity: number;
+  /** New quantity (after adding stock). */
+  quantity?: number;
+  /** Full updated product (after editing). */
+  product?: IStockProduct;
 }
 
 export interface DeleteStockProductAction {

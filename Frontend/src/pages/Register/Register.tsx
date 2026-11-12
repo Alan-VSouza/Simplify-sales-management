@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import image from "@components/Register.jpg";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { API_URL } from "../../config/api";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -40,7 +41,7 @@ const RegisterPage = () => {
         PasswordHash: formData.password,
       };
 
-      const response = await fetch("https://localhost:7159/api/User/Register", {
+      const response = await fetch(`${API_URL}/api/User/Register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

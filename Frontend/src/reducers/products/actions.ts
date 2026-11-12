@@ -1,5 +1,9 @@
 import { AppThunkAction } from "@store/index";
 import { IProduct, KnownAction } from "./interface";
+import { API_URL } from "../../config/api";
+
+/** Dates are set by the API, so they are not sent when creating or editing. */
+export type ProductPayload = Omit<IProduct, "createAt" | "updateAt">;
 
 export const actionsCreators = {
   GetAll: (force: boolean = false): AppThunkAction<KnownAction> => (dispatch, getState) => {
@@ -7,7 +11,7 @@ export const actionsCreators = {
     if (state && (state.products.products.length === 0 || force)) {
       dispatch({ type: "PRODUCT_REQUEST_GETALL" });
 
-      fetch('https://localhost:7159/api/Product')
+      fetch(`${API_URL}/api/Product`)
         .then((response) => response.json())
         .then((data: IProduct[]) => {
           dispatch({ type: "PRODUCT_RECEIVE_GETALL", data });
@@ -21,7 +25,7 @@ export const actionsCreators = {
   Delete: (id: number): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "PRODUCT_REQUEST_DELETE" });
 
-    fetch(`https://localhost:7159/api/Product/${id}`, { method: "DELETE" })
+    fetch(`${API_URL}/api/Product/${id}`, { method: "DELETE" })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Erro ao deletar produto");
@@ -33,10 +37,10 @@ export const actionsCreators = {
       });
   },
 
-  Add: (product: IProduct): AppThunkAction<KnownAction> => (dispatch) => {
+  Add: (product: ProductPayload): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "PRODUCT_REQUEST_ADD" });
 
-    fetch('https://localhost:7159/api/Product', {
+    fetch(`${API_URL}/api/Product`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
@@ -55,10 +59,10 @@ export const actionsCreators = {
       });
   },
 
-  Edit: (product: IProduct): AppThunkAction<KnownAction> => (dispatch) => {
+  Edit: (product: ProductPayload): AppThunkAction<KnownAction> => (dispatch) => {
     dispatch({ type: "PRODUCT_REQUEST_EDIT" });
 
-    fetch(`https://localhost:7159/api/Product/${product.id}`, {
+    fetch(`${API_URL}/api/Product/${product.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),

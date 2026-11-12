@@ -123,7 +123,7 @@ const StockPage: React.FC<PropsFromRedux> = ({ stockState, actions }) => {
   };
 
   const handleRefreshStock = () => {
-    actions.GetAllStock(true); 
+    actions.GetAllStock();
     toast.info('Estoque atualizado!', { position: 'top-right', autoClose: 2000 });
   };
 
@@ -133,9 +133,8 @@ const StockPage: React.FC<PropsFromRedux> = ({ stockState, actions }) => {
       if (orderBy === 'quantity' || orderBy === 'salesValue') {
         return order === 'asc' ? a[orderBy] - b[orderBy] : b[orderBy] - a[orderBy];
       }
-      return order === 'asc'
-        ? a[orderBy].localeCompare(b[orderBy])
-        : b[orderBy].localeCompare(a[orderBy]);
+      const comparison = String(a[orderBy]).localeCompare(String(b[orderBy]), 'pt-BR');
+      return order === 'asc' ? comparison : -comparison;
     });
 
   const handleToggleSearch = () => {
@@ -382,7 +381,6 @@ const StockPage: React.FC<PropsFromRedux> = ({ stockState, actions }) => {
         open={isRegisterModalOpen}
         onClose={handleCloseRegisterModal}
         product={null}
-        onSave={() => handleCloseRegisterModal()}
       />
     </Box>
   );
