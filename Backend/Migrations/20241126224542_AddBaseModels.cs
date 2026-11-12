@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace CursoDev2411.Migrations
+namespace SimplifySales.Migrations
 {
     /// <inheritdoc />
     public partial class AddBaseModels : Migration

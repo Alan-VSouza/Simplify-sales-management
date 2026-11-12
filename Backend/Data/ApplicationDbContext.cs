@@ -1,7 +1,7 @@
-﻿using CursoDev2411.Models;
+﻿using SimplifySales.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace CursoDev2411.Data
+namespace SimplifySales.Data
 {
     public class ApplicationDbContext : DbContext
     {

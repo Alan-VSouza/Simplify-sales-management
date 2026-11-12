@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CursoDev2411.Models
+namespace SimplifySales.Models
 {
     public class Transaction
     {

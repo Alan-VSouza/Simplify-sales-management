@@ -1,9 +1,9 @@
-﻿using CursoDev2411.Models;
-using CursoDev2411.Respository.Interfaces;
-using CursoDev2411.Services.Interfaces;
+﻿using SimplifySales.Models;
+using SimplifySales.Repository.Interfaces;
+using SimplifySales.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CursoDev2411.Services
+namespace SimplifySales.Services
 {
     public class ProductService : IProductService
     {

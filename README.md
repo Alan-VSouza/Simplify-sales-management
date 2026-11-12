@@ -2,9 +2,17 @@
 
 A web system for a micro-enterprise with three employees to manage sales and purchases. It centralizes product, supplier and client registration, stock control, transactions and user login in a single application.
 
+![Dashboard](docs/screenshots/dashboard.png)
+
+| Products | Transaction details |
+| :-: | :-: |
+| ![Products](docs/screenshots/products.png) | ![Transaction details](docs/screenshots/transaction-details.png) |
+
+*Screenshots use fictional demo data.*
+
 ## Tech stack
 
-**Back-end:** ASP.NET Core (.NET 8), Entity Framework Core 9, SQL Server, Swagger.
+**Back-end:** ASP.NET Core (.NET 8), Entity Framework Core 9, SQLite or SQL Server, Swagger.
 
 **Front-end:** React 18, TypeScript, Vite, Material UI, Redux.
 
@@ -12,11 +20,13 @@ A web system for a micro-enterprise with three employees to manage sales and pur
 
 **Registration:** products, suppliers and clients.
 
-**Transactions:** sales and purchases that update stock automatically.
+**Stock:** sales take items out of stock, purchases from suppliers add them back, with low-stock and out-of-stock states in the UI.
 
-**Access:** user registration and login.
+**Transactions:** sales and purchases with per-item and total discounts, payment method and a detail view.
 
-**Dashboard:** an overview of the business at a glance.
+**Access:** user registration and login, with salted PBKDF2 password hashing.
+
+**Dashboard:** gross and net revenue, discounts, purchases, gross profit and margin, formatted in BRL.
 
 ## Project structure
 
@@ -24,21 +34,18 @@ A web system for a micro-enterprise with three employees to manage sales and pur
 
 ## Getting started
 
-**Requirements:** .NET 8 SDK, Node 18+ and a SQL Server instance.
+**Requirements:** .NET 8 SDK and Node 18+. SQL Server is optional.
 
-**1. Configure the database.** Copy `Backend/appsettings.Example.json` to `Backend/appsettings.Development.json` (this file is git-ignored) and set your connection string.
-
-**2. Run the API.**
+**1. Run the API.** By default it uses a local SQLite file, so nothing else needs to be installed. The schema is created on the first run.
 
 ```bash
 cd Backend
-dotnet ef database update
 dotnet run --launch-profile https
 ```
 
 Swagger is served at the root path and the API listens on https://localhost:7159.
 
-**3. Run the front-end.**
+**2. Run the front-end.**
 
 ```bash
 cd Frontend
@@ -46,16 +53,24 @@ npm install
 npm run dev
 ```
 
-The API URL is currently hardcoded in `Frontend/src/reducers`; update it if your back-end runs on a different address.
+The front-end reads the API address from `VITE_API_URL`. Copy `Frontend/.env.example` to `Frontend/.env` if your API runs somewhere else.
+
+### Using SQL Server instead
+
+Copy `Backend/appsettings.Example.json` to `Backend/appsettings.Development.json` (git-ignored), set your connection string, then apply the migrations:
+
+```bash
+cd Backend
+dotnet ef database update
+dotnet run --launch-profile https
+```
 
 ## Known limitations and roadmap
 
-**Password hashing:** passwords use unsalted SHA-256. Planned: move to BCrypt or Argon2.
-
-**Authentication:** the login token is a placeholder. Planned: JWT-based authentication.
+**Authentication:** the login token is a placeholder and API routes are not protected. Planned: JWT-based authentication.
 
 **CORS:** currently open to all origins. Planned: restrict to the front-end origin.
 
-**Configuration:** the API URL is hardcoded. Planned: move it to an environment variable.
-
 **Tests:** there are none yet. Planned: unit tests for the services and the transaction flow.
+
+**Done:** passwords moved from unsalted SHA-256 to salted PBKDF2 (old accounts are upgraded on their next login); the API URL moved to an environment variable; the project can run on SQLite without SQL Server.

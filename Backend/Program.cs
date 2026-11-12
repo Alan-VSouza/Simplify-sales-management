@@ -1,12 +1,12 @@
-using CursoDev2411.Data;
-using CursoDev2411.Respository;
-using CursoDev2411.Respository.Interfaces;
-using CursoDev2411.Services;
-using CursoDev2411.Services.Interfaces;
+using SimplifySales.Data;
+using SimplifySales.Repository;
+using SimplifySales.Repository.Interfaces;
+using SimplifySales.Services;
+using SimplifySales.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
-namespace CursoDev2411
+namespace SimplifySales
 {
     public class Program
     {
@@ -14,12 +14,20 @@ namespace CursoDev2411
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Adicionar serviÁo do banco de dados.
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ??
-                                     throw new InvalidOperationException("Chave de conex„o 'DefaultConnection' n„o encontrada.")));
+            // Banco de dados: "Sqlite" (padr√£o, roda sem instalar nada) ou "SqlServer".
+            var provider = builder.Configuration["DatabaseProvider"] ?? "Sqlite";
+            var connectionString = builder.Configuration.GetConnectionString(provider)
+                ?? throw new InvalidOperationException($"Connection string '{provider}' n√£o encontrada.");
 
-            // RepositÛrios e serviÁos
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                if (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+                    options.UseSqlServer(connectionString);
+                else
+                    options.UseSqlite(connectionString);
+            });
+
+            // Reposit√≥rios e servi√ßos
             builder.Services.AddScoped<IPeopleRepository, PeopleRepository>();
             builder.Services.AddScoped<IPeopleService, PeopleService>();
 
@@ -30,32 +38,35 @@ namespace CursoDev2411
             builder.Services.AddScoped<ITransactionItemRepository, TransactionItemRepository>();
             builder.Services.AddScoped<ITransactionService, TransactionService>();
 
-            // Adicionar CORS
+            // CORS liberado para o front-end em desenvolvimento
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyOrigin()    // Permitir qualquer origem
-                          .AllowAnyMethod()    // Permitir qualquer mÈtodo HTTP (GET, POST, PUT, DELETE)
-                          .AllowAnyHeader();   // Permitir qualquer cabeÁalho
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
                 });
             });
 
-            // Adicionar mapeamento dos controladores e JSON
+            // Controladores da API e serializa√ß√£o JSON
             builder.Services.AddControllers().AddNewtonsoftJson(x =>
                 x.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
+            builder.Services.AddProblemDetails();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configurar os requests HTTP para a pipeline
-            if (!app.Environment.IsDevelopment())
+            // As migrations do projeto s√£o espec√≠ficas do SQL Server (aplique com `dotnet ef database update`).
+            // No SQLite o schema √© criado a partir do modelo na primeira execu√ß√£o.
+            if (!provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
             {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
+                using var scope = app.Services.CreateScope();
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.EnsureCreated();
             }
-            else
+
+            if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(options =>
@@ -64,21 +75,19 @@ namespace CursoDev2411
                     options.RoutePrefix = string.Empty;
                 });
             }
+            else
+            {
+                app.UseExceptionHandler();
+                app.UseHsts();
+            }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();
 
-            app.UseRouting();
-
-            // Habilitar o CORS
             app.UseCors("AllowAll");
 
             app.UseAuthorization();
 
-            // Mapear a rota padr„o a ser seguida nos controladores
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapControllers();
 
             app.Run();
         }

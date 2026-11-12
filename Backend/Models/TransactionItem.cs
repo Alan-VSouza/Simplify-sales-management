@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using CursoDev2411.Models;
+using SimplifySales.Models;
 
 public class TransactionItem
 {

@@ -1,21 +1,19 @@
-using CursoDev2411.Models;
-using CursoDev2411.Services;
-using CursoDev2411.Services.Interfaces;
+using SimplifySales.Models;
+using SimplifySales.Services;
+using SimplifySales.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CursoDev2411.Controllers
+namespace SimplifySales.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly ITransactionService _transactionService;
 
-        public ProductController(IProductService productService, ITransactionService transactionService)
+        public ProductController(IProductService productService)
         {
             _productService = productService;
-            _transactionService = transactionService;
         }
 
         [HttpGet]
@@ -30,7 +28,7 @@ namespace CursoDev2411.Controllers
         {
             var product = await _productService.FindById(id);
             if (product == null)
-                return NotFound($"Produto com ID {id} n„o encontrado.");
+                return NotFound($"Produto com ID {id} n√£o encontrado.");
             return Ok(product);
         }
 
@@ -40,13 +38,13 @@ namespace CursoDev2411.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(form.Name))
-                    return BadRequest("O Nome do produto È obrigatÛrio.");
+                    return BadRequest("O Nome do produto √© obrigat√≥rio.");
 
                 if (form.FactoryValue < 0)
-                    return BadRequest("O Valor de custo n„o pode ser negativo.");
+                    return BadRequest("O Valor de custo n√£o pode ser negativo.");
 
                 if (form.SalesValue < 0)
-                    return BadRequest("O Valor de venda n„o pode ser negativo.");
+                    return BadRequest("O Valor de venda n√£o pode ser negativo.");
 
                 await _productService.Create(form);
                 return CreatedAtAction(nameof(GetById), new { id = form.Id }, form);
@@ -64,7 +62,7 @@ namespace CursoDev2411.Controllers
             {
                 var existingProduct = await _productService.FindById(id);
                 if (existingProduct == null)
-                    return NotFound($"Produto com ID {id} n„o encontrado.");
+                    return NotFound($"Produto com ID {id} n√£o encontrado.");
 
                 await _productService.Update(id, form);
                 return NoContent();
@@ -82,7 +80,7 @@ namespace CursoDev2411.Controllers
             {
                 var existingProduct = await _productService.FindById(id);
                 if (existingProduct == null)
-                    return NotFound($"Produto com ID {id} n„o encontrado.");
+                    return NotFound($"Produto com ID {id} n√£o encontrado.");
 
                 await _productService.Delete(id);
                 return NoContent();
@@ -100,26 +98,15 @@ namespace CursoDev2411.Controllers
             {
                 var product = await _productService.FindById(id);
                 if (product == null)
-                    return NotFound($"Produto com ID {id} n„o encontrado.");
+                    return NotFound($"Produto com ID {id} n√£o encontrado.");
+
+                if (product.Quantity + quantityToAdd < 0)
+                    return BadRequest(new { Error = "O estoque n√£o pode ficar negativo." });
 
                 product.Quantity += quantityToAdd;
                 product.UpdateAt = DateTime.Now;
 
                 await _productService.Update(id, product);
-
-                var associatedTransactions = await _transactionService.GetTransactionsByProductId(id);
-
-                foreach (var transaction in associatedTransactions)
-                {
-                    foreach (var item in transaction.TransactionsItems)
-                    {
-                        if (item.ProductId == id)
-                        {
-                            transaction.Active = product.Quantity > 0;
-                        }
-                    }
-                    await _transactionService.Update(transaction.Id, transaction);
-                }
 
                 return Ok(product);
             }

@@ -1,14 +1,18 @@
-﻿using CursoDev2411.Data;
-using CursoDev2411.Models;
-using CursoDev2411.Services.Interfaces;
+﻿using SimplifySales.Data;
+using SimplifySales.Models;
+using SimplifySales.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CursoDev2411.Services
+namespace SimplifySales.Services
 {
     public class UserService : IUserService
     {
+        // PBKDF2 with a per-user salt (ASP.NET Core Identity's default hasher).
+        private static readonly PasswordHasher<User> Hasher = new();
+
         private readonly ApplicationDbContext _context;
 
         public UserService(ApplicationDbContext context)
@@ -21,10 +25,24 @@ namespace CursoDev2411.Services
             var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
             if (user == null) return null;
 
-            using var sha256 = SHA256.Create();
-            var passwordHash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
+            // Accounts created before the PBKDF2 change still use unsalted SHA-256: accept once and upgrade.
+            if (user.PasswordHash == LegacySha256(password))
+            {
+                user.PasswordHash = Hasher.HashPassword(user, password);
+                await _context.SaveChangesAsync();
+                return user;
+            }
 
-            return user.PasswordHash == passwordHash ? user : null;
+            var result = Hasher.VerifyHashedPassword(user, user.PasswordHash, password);
+            if (result == PasswordVerificationResult.Failed) return null;
+
+            if (result == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.PasswordHash = Hasher.HashPassword(user, password);
+                await _context.SaveChangesAsync();
+            }
+
+            return user;
         }
 
         public async Task Register(User user)
@@ -35,11 +53,14 @@ namespace CursoDev2411.Services
             if (await _context.Users.AnyAsync(u => u.Name == user.Name))
                 throw new Exception("Nome já registrado.");
 
-            using var sha256 = SHA256.Create();
-            user.PasswordHash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(user.PasswordHash)));
+            // The request carries the plain password in PasswordHash; store only the hash.
+            user.PasswordHash = Hasher.HashPassword(user, user.PasswordHash);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }
+
+        private static string LegacySha256(string password) =>
+            Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(password)));
     }
 }

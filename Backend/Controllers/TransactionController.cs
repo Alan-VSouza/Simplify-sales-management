@@ -1,8 +1,8 @@
-using CursoDev2411.Models;
-using CursoDev2411.Services.Interfaces;
+using SimplifySales.Models;
+using SimplifySales.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CursoDev2411.Controllers
+namespace SimplifySales.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -30,7 +30,7 @@ namespace CursoDev2411.Controllers
         {
             var transaction = await _transactionService.FindById(id);
             if (transaction == null)
-                return NotFound($"TransaÁ„o com ID {id} n„o encontrada.");
+                return NotFound($"Transa√ß√£o com ID {id} n√£o encontrada.");
 
             return Ok(transaction);
         }
@@ -42,14 +42,14 @@ namespace CursoDev2411.Controllers
             try
             {
                 if (form.TransactionAt == DateTime.MinValue)
-                    return BadRequest("A data da transaÁ„o È obrigatÛria.");
+                    return BadRequest("A data da transa√ß√£o √© obrigat√≥ria.");
 
                 if (form.TransactionsItems == null || !form.TransactionsItems.Any())
-                    return BadRequest("A transaÁ„o deve conter pelo menos um item.");
+                    return BadRequest("A transa√ß√£o deve conter pelo menos um item.");
 
                 var person = await _personService.FindById(form.PersonId);
                 if (person == null)
-                    return BadRequest($"Pessoa com ID {form.PersonId} n„o encontrada.");
+                    return BadRequest($"Pessoa com ID {form.PersonId} n√£o encontrada.");
 
                 form.Person = person;
 
@@ -57,7 +57,7 @@ namespace CursoDev2411.Controllers
                 {
                     var product = await _productService.FindById(item.ProductId);
                     if (product == null)
-                        return BadRequest($"Produto com ID {item.ProductId} n„o encontrado.");
+                        return BadRequest($"Produto com ID {item.ProductId} n√£o encontrado.");
 
                     item.Product = product;
                 }
@@ -80,14 +80,14 @@ namespace CursoDev2411.Controllers
             try
             {
                 if (form.TransactionAt == DateTime.MinValue)
-                    return BadRequest("A data da transaÁ„o È obrigatÛria.");
+                    return BadRequest("A data da transa√ß√£o √© obrigat√≥ria.");
 
                 if (form.TransactionsItems == null || !form.TransactionsItems.Any())
-                    return BadRequest("A transaÁ„o deve conter pelo menos um item.");
+                    return BadRequest("A transa√ß√£o deve conter pelo menos um item.");
 
                 var existingTransaction = await _transactionService.FindById(id);
                 if (existingTransaction == null)
-                    return NotFound($"TransaÁ„o com ID {id} n„o encontrada.");
+                    return NotFound($"Transa√ß√£o com ID {id} n√£o encontrada.");
 
                 await _transactionService.Update(id, form);
                 return NoContent();
@@ -106,7 +106,7 @@ namespace CursoDev2411.Controllers
                 var transaction = await _transactionService.FindById(id);
                 if (transaction == null)
                 {
-                    return NotFound(new { Error = $"TransaÁ„o com ID {id} n„o encontrada." });
+                    return NotFound(new { Error = $"Transa√ß√£o com ID {id} n√£o encontrada." });
                 }
 
                 transaction.Active = !transaction.Active;
@@ -117,7 +117,7 @@ namespace CursoDev2411.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao alternar status da transaÁ„o {id}: {ex.Message}");
+                Console.WriteLine($"Erro ao alternar status da transa√ß√£o {id}: {ex.Message}");
                 return BadRequest(new { Error = $"Erro ao alternar status: {ex.Message}" });
             }
         }

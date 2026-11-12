@@ -1,6 +1,6 @@
-﻿using CursoDev2411.Models;
+﻿using SimplifySales.Models;
 
-namespace CursoDev2411.Services.Interfaces
+namespace SimplifySales.Services.Interfaces
 {
     public interface IPeopleService
     {

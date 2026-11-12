@@ -1,9 +1,9 @@
-﻿using CursoDev2411.Models;
-using CursoDev2411.Respository.Interfaces;
-using CursoDev2411.Services.Interfaces;
+﻿using SimplifySales.Models;
+using SimplifySales.Repository.Interfaces;
+using SimplifySales.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace CursoDev2411.Services
+namespace SimplifySales.Services
 {
     public class TransactionService : ITransactionService
     {
@@ -27,6 +27,7 @@ namespace CursoDev2411.Services
         {
             return await _transactionRepository.GetAll()
                 .Include(t => t.TransactionsItems)
+                    .ThenInclude(i => i.Product)
                 .ToListAsync();
         }
 
@@ -54,10 +55,18 @@ namespace CursoDev2411.Services
                 if (product == null)
                     throw new Exception($"Produto com ID {item.ProductId} não encontrado.");
 
-                if (product.Quantity < item.Amount)
-                    throw new Exception($"Estoque insuficiente para o produto {product.Name}.");
+                if (form.Type == TransactionType.Buy)
+                {
+                    // Purchases from a supplier add to the stock.
+                    product.Quantity += item.Amount;
+                }
+                else
+                {
+                    if (product.Quantity < item.Amount)
+                        throw new Exception($"Estoque insuficiente para o produto {product.Name}.");
 
-                product.Quantity -= item.Amount;
+                    product.Quantity -= item.Amount;
+                }
                 item.Product = product;
                 item.Value = product.FactoryValue;
                 item.SellValue = product.SalesValue;
@@ -94,11 +103,6 @@ namespace CursoDev2411.Services
             transaction.UpdateAt = DateTime.Now;
 
             await _transactionRepository.Update(transaction);
-        }
-
-        public Task<List<Transaction>> GetTransactionsByProductId(int productId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

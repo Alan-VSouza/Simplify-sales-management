@@ -1,8 +1,8 @@
-using CursoDev2411.Models;
-using CursoDev2411.Services.Interfaces;
+using SimplifySales.Models;
+using SimplifySales.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CursoDev2411.Controllers
+namespace SimplifySales.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -32,7 +32,7 @@ namespace CursoDev2411.Controllers
             var person = await _peopleService.FindById(id);
 
             if (person == null)
-                return NotFound($"Pessoa com ID {id} n„o encontrada.");
+                return NotFound($"Pessoa com ID {id} n√£o encontrada.");
 
             return Ok(person);
         }
@@ -46,21 +46,21 @@ namespace CursoDev2411.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(form.Name))
-                    throw new Exception("O Nome n„o pode estar vazio.");
+                    throw new Exception("O Nome n√£o pode estar vazio.");
 
                 if (string.IsNullOrWhiteSpace(form.Email))
-                    throw new Exception("O Email n„o pode estar vazio.");
+                    throw new Exception("O Email n√£o pode estar vazio.");
 
                 if (string.IsNullOrWhiteSpace(form.PhoneNumber))
-                    throw new Exception("O N˙mero de telefone n„o pode estar vazio.");
+                    throw new Exception("O N√∫mero de telefone n√£o pode estar vazio.");
 
                 if (string.IsNullOrWhiteSpace(form.Document))
-                    throw new Exception("O Documento n„o pode estar vazio.");
+                    throw new Exception("O Documento n√£o pode estar vazio.");
 
                 var existingPerson = await _peopleService.FindByDocument(form.Document, form.Type);
 
                 if (existingPerson != null)
-                    throw new Exception($"O documento {form.Document} j· est· cadastrado como {form.Type}.");
+                    throw new Exception($"O documento {form.Document} j√° est√° cadastrado como {form.Type}.");
 
                 await _peopleService.Create(form);
                 return CreatedAtAction(nameof(GetById), new { id = form.Id }, form);
@@ -83,19 +83,19 @@ namespace CursoDev2411.Controllers
             {
                 var existingPerson = await _peopleService.FindById(id);
                 if (existingPerson == null)
-                    return NotFound($"Pessoa com ID {id} n„o encontrada.");
+                    return NotFound($"Pessoa com ID {id} n√£o encontrada.");
 
                 if (string.IsNullOrWhiteSpace(form.Name))
-                    throw new Exception("O Nome n„o pode estar vazio.");
+                    throw new Exception("O Nome n√£o pode estar vazio.");
 
                 if (string.IsNullOrWhiteSpace(form.Email))
-                    throw new Exception("O Email n„o pode estar vazio.");
+                    throw new Exception("O Email n√£o pode estar vazio.");
 
                 if (string.IsNullOrWhiteSpace(form.PhoneNumber))
-                    throw new Exception("O N˙mero de telefone n„o pode estar vazio.");
+                    throw new Exception("O N√∫mero de telefone n√£o pode estar vazio.");
 
                 if (string.IsNullOrWhiteSpace(form.Document))
-                    throw new Exception("O Documento n„o pode estar vazio.");
+                    throw new Exception("O Documento n√£o pode estar vazio.");
 
                 await _peopleService.Update(id, form);
                 return NoContent();
@@ -113,7 +113,7 @@ namespace CursoDev2411.Controllers
             {
                 var existingPerson = await _peopleService.FindById(id);
                 if (existingPerson == null)
-                    return NotFound($"Pessoa com ID {id} n„o encontrada.");
+                    return NotFound($"Pessoa com ID {id} n√£o encontrada.");
 
                 await _peopleService.Delete(id);
                 return NoContent();

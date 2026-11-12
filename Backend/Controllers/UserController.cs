@@ -1,8 +1,8 @@
-﻿using CursoDev2411.Models;
-using CursoDev2411.Services.Interfaces;
+﻿using SimplifySales.Models;
+using SimplifySales.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CursoDev2411.Controllers
+namespace SimplifySales.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

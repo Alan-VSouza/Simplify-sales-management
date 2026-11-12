@@ -1,6 +1,6 @@
-﻿using CursoDev2411.Models;
+﻿using SimplifySales.Models;
 
-namespace CursoDev2411.Services.Interfaces
+namespace SimplifySales.Services.Interfaces
 {
     public interface ITransactionService
     {
@@ -9,6 +9,5 @@ namespace CursoDev2411.Services.Interfaces
         public Task Create(Transaction form);
         public Task Update(int id, Transaction form);
         public Task Delete(int id);
-        public Task<List<Transaction>> GetTransactionsByProductId(int productId);
     }
 }

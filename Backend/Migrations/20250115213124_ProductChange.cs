@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace CursoDev2411.Migrations
+namespace SimplifySales.Migrations
 {
     /// <inheritdoc />
     public partial class ProductChange : Migration
