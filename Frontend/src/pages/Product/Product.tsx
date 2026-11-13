@@ -2,16 +2,16 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React, { useEffect, useState } from "react";
-import { Typography,Grid,Card,CardContent,Box,Chip,IconButton,TextField,Tooltip,Button,Dialog,DialogActions,DialogContent,DialogContentText,DialogTitle,LinearProgress, } from "@mui/material";
+import { Typography, Grid, Card, CardContent, Box, Chip, IconButton, TextField, Tooltip, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress } from "@mui/material";
+import PageToolbar from "../../components/PageToolbar";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SyncIcon from "@mui/icons-material/Sync";
-import SearchIcon from "@mui/icons-material/Search";
-import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { styled } from "@mui/system";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCartRounded";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import { alpha } from "@mui/material/styles";
 import ProductRegisterModal from "./ProductRegisterModal";
 import ProductThumb from "../../components/ProductThumb";
 import { formatCurrency } from "../../utils/format";
@@ -40,41 +40,12 @@ const connector = connect(
 
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
-const SearchBox = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: theme.spacing(2),
-  transition: "all 0.4s ease",
-  ".searchBox": {
-    overflow: "hidden",
-    maxWidth: 0,
-    opacity: 0,
-    transition: "max-width 0.4s ease, opacity 0.4s ease",
-  },
-  ".searchBox.expand": {
-    maxWidth: 200,
-    opacity: 1,
-  },
-}));
 
-const MotionCard = styled(motion(Card))(({ theme }) => ({
-  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
-  borderRadius: theme.shape.borderRadius,
-  display: "flex",
-  flexDirection: "column",
-  backgroundColor: theme.palette.background.paper,
-  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-  "&:hover": {
-    transform: "scale(1.05)",
-    boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.2)",
-  },
-}));
 
 const Product: React.FC<PropsFromRedux> = ({ productsState, actions }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchExpanded, setSearchExpanded] = useState(false);
   const [isAddToCartDialogOpen, setAddToCartDialogOpen] = useState(false);
   const [quantityToAddToCart, setQuantityToAddToCart] = useState("");
   const [isCartTouched, setIsCartTouched] = useState(false);
@@ -182,114 +153,106 @@ const Product: React.FC<PropsFromRedux> = ({ productsState, actions }) => {
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleSearch = () => setSearchExpanded((prev) => !prev);
-
   return (
-    <Box sx={{ px: 3, py: 2 }}>
+    <Box>
       <ToastContainer />
-      <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 4,
-            gap: 3,
-          }}
-        >
-        <Typography variant="h4" color="#000000" fontWeight="bold">
-          Produtos
-        </Typography>
-        <SearchBox>
-          <Box className={`searchBox ${isSearchExpanded ? "expand" : ""}`}>
-            <TextField
-              placeholder="Pesquisar produtos..."
-              variant="outlined"
-              size="small"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </Box>
-          <IconButton onClick={handleToggleSearch}>
-            <SearchIcon />
-          </IconButton>
-          <Button variant="contained" color="primary" onClick={() => handleOpenModal(null)}>
-            Cadastrar Produto
-          </Button>
-          <IconButton onClick={handleRefresh}>
-            <SyncIcon />
-          </IconButton>
-        </SearchBox>
-      </Box>
+      <PageToolbar
+        search={searchQuery}
+        onSearch={setSearchQuery}
+        placeholder="Pesquisar produtos..."
+        onRefresh={handleRefresh}
+      >
+        <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => handleOpenModal(null)}>
+          Novo produto
+        </Button>
+      </PageToolbar>
 
       {productsState.getAllStatus === "loading" ? (
-        <LinearProgress />
+        <LinearProgress sx={{ borderRadius: 4 }} />
       ) : (
         <Grid container spacing={3}>
           {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-              <MotionCard
+              <Card
+                component={motion.div}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.15 }}
                 sx={{
-                  boxShadow: 3,
-                  borderRadius: 2,
                   overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
                   height: "100%",
+                  transition: "box-shadow 0.2s ease",
+                  "&:hover": { boxShadow: "0 12px 28px rgba(15,31,23,0.08)" },
                 }}
               >
-                <ProductThumb name={product.name} category={product.category} />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" sx={{ lineHeight: 1.3, mb: 0.5 }}>
-                    {product.name}
+                <Box sx={{ position: "relative" }}>
+                  <ProductThumb name={product.name} category={product.category} />
+                  {product.category && (
+                    <Chip
+                      label={product.category}
+                      size="small"
+                      sx={{ position: "absolute", top: 12, left: 12, bgcolor: "rgba(255,255,255,0.85)", fontSize: 12 }}
+                    />
+                  )}
+                </Box>
+                <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: 16, lineHeight: 1.3 }}>{product.name}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                    {product.brand || "Sem marca"}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {product.brand ? `${product.brand} · ` : ""}
-                    {product.category}
-                  </Typography>
-                  <Typography variant="h6" color="primary" sx={{ mt: 1.5 }}>
-                    {formatCurrency(product.salesValue)}
-                  </Typography>
-                  <Box display="flex" alignItems="center" gap={1} mt={0.5}>
-                    <Typography variant="body2">Estoque: {product.quantity}</Typography>
-                    {product.quantity <= LOW_STOCK_THRESHOLD && (
-                      <Chip label="Estoque baixo" color="warning" size="small" />
-                    )}
+                  <Box display="flex" alignItems="flex-end" justifyContent="space-between" mt={2}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Preço de venda
+                      </Typography>
+                      <Typography sx={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.02em" }}>
+                        {formatCurrency(product.salesValue)}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      size="small"
+                      label={product.quantity <= 0 ? "Sem estoque" : `${product.quantity} em estoque`}
+                      sx={(theme) => {
+                        const tone =
+                          product.quantity <= 0
+                            ? theme.palette.error.main
+                            : product.quantity <= LOW_STOCK_THRESHOLD
+                            ? theme.palette.warning.main
+                            : theme.palette.success.main;
+                        return { bgcolor: alpha(tone, 0.12), color: tone };
+                      }}
+                    />
                   </Box>
                 </CardContent>
                 <Box sx={{ px: 2, pb: 2, display: "flex", alignItems: "center", gap: 0.5 }}>
                   <Tooltip title="Editar">
-                    <IconButton
-                      aria-label={`Editar ${product.name}`}
-                      color="warning"
-                      onClick={() => handleOpenModal(product)}
-                    >
-                      <EditIcon />
+                    <IconButton size="small" aria-label={`Editar ${product.name}`} onClick={() => handleOpenModal(product)}>
+                      <EditOutlinedIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Excluir">
                     <IconButton
+                      size="small"
                       aria-label={`Excluir ${product.name}`}
-                      color="error"
                       onClick={() => handleDeleteProduct(product.id, product.name)}
+                      sx={{ "&:hover": { color: "error.main" } }}
                     >
-                      <DeleteIcon />
+                      <DeleteOutlineRoundedIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
                   <Button
                     startIcon={<AddShoppingCartIcon />}
                     variant="contained"
-                    color="success"
                     size="small"
                     sx={{ ml: "auto" }}
                     disabled={product.quantity <= 0}
                     onClick={() => handleOpenAddToCartDialog(product)}
                   >
-                    {product.quantity <= 0 ? "Sem estoque" : "Adicionar"}
+                    Vender
                   </Button>
                 </Box>
-              </MotionCard>
+              </Card>
             </Grid>
           ))}
         </Grid>

@@ -1,32 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { Typography,Grid,Card,CardContent,Button,Box,TextField,IconButton,CircularProgress,} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import SyncIcon from '@mui/icons-material/Sync';
-import { styled } from '@mui/system';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
-import { connect } from 'react-redux';
-import { bindActionCreators, Dispatch } from 'redux';
-import * as TransactionActions from '@reducers/transaction/actions';
-import { ApplicationState } from '@store/index';
-import { ITransaction } from '@reducers/transaction/interface';
-import TransactionViewModal from './TransactionViewModal';
+import React, { useEffect, useState } from "react";
+import { Typography, Card, Button, Box, CircularProgress } from "@mui/material";
+import {
+  Avatar,
+  Chip,
+  IconButton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import BlockRoundedIcon from "@mui/icons-material/BlockRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import { brand, chartPalette } from "../../theme";
+import { formatCurrency, formatDateTime } from "../../utils/format";
+import { PaymentMethod, TransactionType } from "@reducers/transaction/interface";
 
-const AnimatedBox = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(2),
-  '.searchBox': {
-    overflow: 'hidden',
-    maxWidth: 0,
-    opacity: 0,
-    transition: 'max-width 0.4s ease, opacity 0.4s ease',
-  },
-  '.searchBox.expand': {
-    maxWidth: 200,
-    opacity: 1,
-  },
-}));
+const paymentLabels: Record<PaymentMethod, string> = {
+  [PaymentMethod.CreditCard]: "Crédito",
+  [PaymentMethod.DebitCard]: "Débito",
+  [PaymentMethod.Money]: "Dinheiro",
+  [PaymentMethod.Pix]: "Pix",
+};
+import PageToolbar from "../../components/PageToolbar";
+import { ButtonGroup } from "@mui/material";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
+import * as TransactionActions from "@reducers/transaction/actions";
+import { ApplicationState } from "@store/index";
+import { ITransaction } from "@reducers/transaction/interface";
+import TransactionViewModal from "./TransactionViewModal";
 
 type PropsFromRedux = ReturnType<typeof mapStateToProps> & ReturnType<typeof mapDispatchToProps>;
 
@@ -34,10 +44,8 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
   const [filteredTransactions, setFilteredTransactions] = useState<ITransaction[]>([]);
   const [isViewModalOpen, setViewModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<ITransaction | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
-  const [isSearchExpanded, setSearchExpanded] = useState(false);
-  const [isAnimating, setAnimating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
 
   useEffect(() => {
     if (transactions.length === 0) {
@@ -47,22 +55,16 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
     }
   }, [transactions, actions]);
 
-  const applyFilters = (
-    transactions: ITransaction[],
-    query: string,
-    filter: 'all' | 'active' | 'inactive'
-  ) => {
+  const applyFilters = (transactions: ITransaction[], query: string, filter: "all" | "active" | "inactive") => {
     let result = [...transactions];
 
     if (query.trim()) {
-      result = result.filter((transaction) =>
-        transaction.person?.name.toLowerCase().includes(query.toLowerCase())
-      );
+      result = result.filter((transaction) => transaction.person?.name.toLowerCase().includes(query.toLowerCase()));
     }
 
-    if (filter === 'active') {
+    if (filter === "active") {
       result = result.filter((transaction) => transaction.active);
-    } else if (filter === 'inactive') {
+    } else if (filter === "inactive") {
       result = result.filter((transaction) => !transaction.active);
     }
 
@@ -74,37 +76,35 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
     applyFilters(transactions, query, filterActive);
   };
 
-  const handleFilterChange = (filter: 'all' | 'active' | 'inactive') => {
+  const handleFilterChange = (filter: "all" | "active" | "inactive") => {
     setFilterActive(filter);
     applyFilters(transactions, searchQuery, filter);
   };
 
   const handleToggleTransactionStatus = (id: number, active: boolean) => {
-    toast(
-      ({ closeToast }) => (
-        <Box>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Tem certeza que deseja {active ? 'inativar' : 'ativar'} a transação #{id}?
-          </Typography>
-          <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button
-              variant="contained"
-              color={active ? 'error' : 'success'}
-              onClick={() => {
-                actions.ToggleStatus(id); // Atualiza o status da transação
-                closeToast(); // Fecha o toast de confirmação
-              }}
-              sx={{ textTransform: 'none' }}
-            >
-              Confirmar
-            </Button>
-            <Button variant="outlined" onClick={closeToast} sx={{ textTransform: 'none' }}>
-              Cancelar
-            </Button>
-          </Box>
+    toast(({ closeToast }) => (
+      <Box>
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          Tem certeza que deseja {active ? "inativar" : "ativar"} a transação #{id}?
+        </Typography>
+        <Box display="flex" justifyContent="flex-end" gap={1}>
+          <Button
+            variant="contained"
+            color={active ? "error" : "success"}
+            onClick={() => {
+              actions.ToggleStatus(id); // Atualiza o status da transação
+              closeToast(); // Fecha o toast de confirmação
+            }}
+            sx={{ textTransform: "none" }}
+          >
+            Confirmar
+          </Button>
+          <Button variant="outlined" onClick={closeToast} sx={{ textTransform: "none" }}>
+            Cancelar
+          </Button>
         </Box>
-      ),
-    );
+      </Box>
+    ));
   };
 
   const handleViewTransaction = (transaction: ITransaction) => {
@@ -118,212 +118,154 @@ const Transaction: React.FC<PropsFromRedux> = ({ transactions, getAllStatus, act
   };
 
   const handleRefresh = () => {
-    toast.info('Recarregando transações...', {
-      position: 'top-right',
+    toast.info("Recarregando transações...", {
+      position: "top-right",
       autoClose: 2000,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
-      theme: 'colored',
+      theme: "colored",
     });
     actions.GetAll(true);
   };
 
-  const handleToggleSearch = () => {
-    if (!isSearchExpanded) {
-      setAnimating(true);
-      setSearchExpanded(true);
-    } else {
-      setAnimating(false);
-      setTimeout(() => setSearchExpanded(false), 400);
-    }
-  };
-
   return (
-    <Box sx={{ px: 3, py: 2 }}>
+    <Box>
       <ToastContainer position="top-right" autoClose={3000} />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 4,
-          gap: 3,
-        }}
-      >
-        <Typography variant="h4" color="#000000" fontWeight="bold">
-          Transações
-        </Typography>
-        <AnimatedBox>
+      <PageToolbar
+        search={searchQuery}
+        onSearch={handleSearch}
+        placeholder="Pesquisar por nome..."
+        onRefresh={handleRefresh}
+        filters={
+          <ButtonGroup size="small" variant="outlined" sx={{ bgcolor: "#fff", borderRadius: "10px" }}>
+            {(["all", "active", "inactive"] as const).map((key) => (
+              <Button
+                key={key}
+                variant={filterActive === key ? "contained" : "outlined"}
+                onClick={() => handleFilterChange(key)}
+              >
+                {{ all: "Todas", active: "Ativas", inactive: "Inativas" }[key]}
+              </Button>
+            ))}
+          </ButtonGroup>
+        }
+      />
 
-          <Box className={`searchBox ${isAnimating ? 'expand' : ''}`}>
-            <TextField
-              placeholder="Pesquisar por nome..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              variant="outlined"
-              size="small"
-              sx={{ width: '100%' }}
-            />
-          </Box>
-
-          <IconButton onClick={handleToggleSearch} color="primary" aria-label="Pesquisar">
-            <SearchIcon />
-          </IconButton>
-
-          <Button
-            variant={filterActive === 'all' ? 'contained' : 'outlined'}
-            onClick={() => handleFilterChange('all')}
-          >
-            Todos
-          </Button>
-          <Button
-            variant={filterActive === 'active' ? 'contained' : 'outlined'}
-            onClick={() => handleFilterChange('active')}
-          >
-            Ativos
-          </Button>
-          <Button
-            variant={filterActive === 'inactive' ? 'contained' : 'outlined'}
-            onClick={() => handleFilterChange('inactive')}
-          >
-            Inativos
-          </Button>
-
-          <IconButton
-            onClick={handleRefresh}
-            color="secondary"
-            aria-label="Recarregar Transações"
-            sx={{
-              transition: 'transform 0.3s ease',
-              '&:hover': {
-                transform: 'rotate(360deg)',
-              },
-            }}
-          >
-            <SyncIcon />
-          </IconButton>
-        </AnimatedBox>
-      </Box>
-
-      {getAllStatus === 'loading' ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      {getAllStatus === "loading" ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
           <CircularProgress />
         </Box>
       ) : filteredTransactions.length > 0 ? (
-        <Grid container spacing={3}>
-          {filteredTransactions.map((transaction) => (
-            <Grid item xs={12} sm={6} md={6} key={transaction.id}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: 3,
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: 6,
-                  },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  backgroundColor: transaction.active ? '' : 'rgba(255, 0, 0, 0.07)',
-                }}
-              >
-                <CardContent
-                  sx={{
-                    padding: 3,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    height: '100%',
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    color="textSecondary"
-                    gutterBottom
-                    sx={{
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    ID: #{transaction.id} ({transaction.active ? 'Ativo' : 'Inativo'})
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: '#2c3e50',
-                      marginBottom: 2,
-                    }}
-                  >
-                    {transaction.person?.name || 'Pessoa não identificada'}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    color="primary"
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '1.1rem',
-                      marginBottom: 2,
-                    }}
-                  >
-                    Valor Final: R$ {transaction.finalValue ? transaction.finalValue.toFixed(2) : '0.00'}
-                  </Typography>
-                </CardContent>
-
-                <Box
-                  sx={{
-                    padding: 2,
-                    borderTop: '1px solid #ddd',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    onClick={() => handleViewTransaction(transaction)}
-                    sx={{
-                      borderRadius: '20px',
-                      padding: '6px 16px',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    Visualizar
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color={transaction.active ? 'error' : 'success'}
-                    onClick={() => handleToggleTransactionStatus(transaction.id, transaction.active)}
-                    sx={{
-                      borderRadius: '20px',
-                      padding: '6px 16px',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    {transaction.active ? 'Inativar' : 'Ativar'}
-                  </Button>
-                </Box>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <Card sx={{ overflow: "hidden" }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Pessoa</TableCell>
+                  <TableCell>Data</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Pagamento</TableCell>
+                  <TableCell align="right">Valor final</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredTransactions.map((transaction) => {
+                  const isSale = transaction.type === TransactionType.Sell;
+                  const tone = isSale ? brand.green : chartPalette[4];
+                  return (
+                    <TableRow key={transaction.id} hover sx={{ opacity: transaction.active ? 1 : 0.55 }}>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          <Avatar
+                            variant="rounded"
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              fontSize: 14,
+                              fontWeight: 800,
+                              bgcolor: alpha(tone, 0.12),
+                              color: tone,
+                            }}
+                          >
+                            {(transaction.person?.name ?? "?").charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                              {transaction.person?.name || "Pessoa não identificada"}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              #{transaction.id}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell sx={{ color: "text.secondary", whiteSpace: "nowrap" }}>
+                        {formatDateTime(transaction.transactionAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          label={isSale ? "Venda" : "Compra"}
+                          sx={{ bgcolor: alpha(tone, 0.1), color: tone }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: "text.secondary" }}>
+                        {paymentLabels[transaction.paymentMethod] ?? "-"}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 800, whiteSpace: "nowrap" }}>
+                        {formatCurrency(transaction.finalValue)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label={transaction.active ? "Ativa" : "Inativa"}
+                          color={transaction.active ? "success" : "default"}
+                        />
+                      </TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                        <Tooltip title="Ver detalhes">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewTransaction(transaction)}
+                            aria-label="Ver detalhes"
+                          >
+                            <VisibilityOutlinedIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={transaction.active ? "Inativar" : "Reativar"}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleToggleTransactionStatus(transaction.id, transaction.active)}
+                            aria-label={transaction.active ? "Inativar" : "Reativar"}
+                            sx={{ "&:hover": { color: transaction.active ? "error.main" : "success.main" } }}
+                          >
+                            {transaction.active ? (
+                              <BlockRoundedIcon fontSize="small" />
+                            ) : (
+                              <RestartAltRoundedIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
       ) : (
         <Typography variant="h6" color="textSecondary" align="center">
           Nenhuma transação encontrada!
         </Typography>
       )}
 
-      <TransactionViewModal
-        open={isViewModalOpen}
-        onClose={handleCloseModals}
-        transaction={selectedTransaction}
-      />
+      <TransactionViewModal open={isViewModalOpen} onClose={handleCloseModals} transaction={selectedTransaction} />
     </Box>
   );
 };

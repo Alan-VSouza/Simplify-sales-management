@@ -27,14 +27,12 @@ interface Person {
 
 const StyledCard = styled(Card)(({ theme }) => ({
   width: "300px",
-  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
-  borderRadius: theme.shape.borderRadius,
-  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  borderRadius: theme.shape.borderRadius * 1.5,
+  transition: "box-shadow 0.2s ease",
   display: "flex",
   flexDirection: "column",
   "&:hover": {
-    transform: "translateY(-5px)",
-    boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.2)",
+    boxShadow: "0 12px 28px rgba(15,31,23,0.08)",
   },
 }));
 
@@ -153,7 +151,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
     if (discount > maxDiscount) {
       setDiscountErrors(prev => ({
         ...prev,
-        [id]: `Desconto não pode exceder R$ ${maxDiscount.toFixed(2)}.`,
+        [id]: `Desconto não pode exceder ${formatCurrency(maxDiscount)}.`,
       }));
       actions.UpdateDiscount(id, maxDiscount);
       return;
@@ -183,7 +181,7 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
     }
 
     if (parsedValue > remainingValue) {
-      setTotalDiscountError(`Desconto total não pode exceder R$ ${remainingValue.toFixed(2)}.`);
+      setTotalDiscountError(`Desconto total não pode exceder ${formatCurrency(remainingValue)}.`);
       setLocalTotalDiscount(remainingValue.toFixed(2));
       return;
     }
@@ -259,17 +257,9 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
         alignItems: "center",
       }}
     >
-      <Typography
-        variant="h4"
-        fontWeight="bold"
-        gutterBottom
-        sx={{ textAlign: "center", mb: 4 }}
-      >
-        Carrinho de Compras
-      </Typography>
 
       <Paper
-        elevation={3}
+        elevation={0}
         sx={{
           p: 3,
           mb: 4,
@@ -278,13 +268,14 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
           display: "flex",
           gap: 2,
           flexDirection: "column",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-          borderRadius: "8px",
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: "16px",
         }}
       >
         <TextField
           select
-          label="Filtrar por Cargo"
+          label="Tipo de pessoa"
           value={personType}
           onChange={(e) =>
             setPersonType(e.target.value === "" ? "" : Number(e.target.value))
@@ -422,15 +413,14 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
                   }}
                 />
 
-                <StyledButton
-                  variant="contained"
+                <Button
                   color="error"
                   fullWidth
                   sx={{ mt: 2 }}
                   onClick={() => handleRemoveItem(item.id)}
                 >
-                  Excluir
-                </StyledButton>
+                  Remover do carrinho
+                </Button>
               </CardContent>
             </StyledCard>
           </Grid>
@@ -476,10 +466,11 @@ const Cart: React.FC<CartProps> = ({ cartState, actions }) => {
         <StyledButton
           variant="contained"
           color="primary"
+          size="large"
           onClick={handleOpenTransactionModal}
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, px: 4 }}
         >
-          Cadastrar Transação
+          Registrar venda
         </StyledButton>
       </Box>
 

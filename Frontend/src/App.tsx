@@ -9,32 +9,11 @@ import Cart from '@pages/Cart/Cart';
 import Stock from '@pages/Stock/Stock';
 import Client from '@pages/Client/Client';
 
-import { createTheme, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import theme from './theme';
 import Login from '@pages/Register/Login';
 import Register from '@pages/Register/Register';
 
-const theme = createTheme({
-  palette: {
-    background: {
-      default: '#ffff', 
-    },
-  },
-});
-
-const globalStyles = (
-  <GlobalStyles
-    styles={{
-      body: {
-        backgroundColor: '#ffff', 
-        margin: 0,
-        padding: 0,
-        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-        height: '100%', 
-        boxSizing: 'border-box',
-      },
-    }}
-  />
-);
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('authToken'); 
@@ -42,7 +21,6 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {globalStyles}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
