@@ -2,9 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from 'react';
-import { Typography,Grid,Card,CardContent,Button,Box,Avatar,IconButton,TextField,CircularProgress,} from '@mui/material';
-import SyncIcon from '@mui/icons-material/Sync';
-import SearchIcon from '@mui/icons-material/Search';
+import { Typography, Grid, Button, Box, CircularProgress } from "@mui/material";
+import PersonCard from "../../components/PersonCard";
+import PageToolbar from "../../components/PageToolbar";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import { styled } from '@mui/system';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,21 +16,6 @@ import * as PeopleActions from '@reducers/people/actions';
 import { IPerson } from '@reducers/people/interface';
 import SupplierRegisterModal from './SupplierRegisterModal';
 
-const AnimatedBox = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(2),
-  '.searchBox': {
-    overflow: 'hidden',
-    maxWidth: 0,
-    opacity: 0,
-    transition: 'max-width 0.4s ease, opacity 0.4s ease',
-  },
-  '.searchBox.expand': {
-    maxWidth: 200,
-    opacity: 1,
-  },
-}));
 
 const CardContainer = styled(Grid)(() => ({
   transition: 'opacity 0.5s ease, transform 0.5s ease',
@@ -48,8 +34,6 @@ const Supplier: React.FC<PropsFromRedux> = ({ people, getAllStatus, actions }) =
   const [filteredPeople, setFilteredPeople] = useState<IPerson[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<IPerson | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchExpanded, setSearchExpanded] = useState(false);
-  const [isAnimating, setAnimating] = useState(false);
   const [removingPersonId, setRemovingPersonId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -126,158 +110,43 @@ const Supplier: React.FC<PropsFromRedux> = ({ people, getAllStatus, actions }) =
     setFilteredPeople(filtered);
   };
 
-  const handleToggleSearch = () => {
-    if (!isSearchExpanded) {
-      setAnimating(true);
-      setSearchExpanded(true);
-    } else {
-      setAnimating(false);
-      setTimeout(() => setSearchExpanded(false), 400);
-    }
-  };
-
   return (
-    <Box sx={{ px: 3, py: 2 }}>
+    <Box>
       <ToastContainer />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 4,
-          gap: 3,
-        }}
+      <PageToolbar
+        search={searchQuery}
+        onSearch={handleSearch}
+        placeholder="Pesquisar fornecedores..."
+        onRefresh={handleRefreshSuppliers}
       >
-        <Typography variant="h4" color="#000000" fontWeight="bold">
-          Fornecedores
-        </Typography>
-        <AnimatedBox>
-          <Box className={`searchBox ${isAnimating ? 'expand' : ''}`}>
-            <TextField
-              placeholder="Pesquisar fornecedores..."
-              variant="outlined"
-              size="small"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              sx={{ width: '100%' }}
-            />
-          </Box>
-          <IconButton onClick={handleToggleSearch} color="primary" aria-label="Pesquisar">
-            <SearchIcon />
-          </IconButton>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleOpenModal(null)}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 'bold',
-              borderRadius: 30,
-            }}
-          >
-            Cadastrar Fornecedor
-          </Button>
-          <IconButton onClick={handleRefreshSuppliers} color="secondary" aria-label="Atualizar">
-            <SyncIcon />
-          </IconButton>
-        </AnimatedBox>
-      </Box>
+        <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => handleOpenModal(null)}>
+          Novo fornecedor
+        </Button>
+      </PageToolbar>
 
       {getAllStatus === 'loading' ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
           <CircularProgress />
         </Box>
       ) : filteredPeople.length > 0 ? (
-        <Grid container spacing={3}>
+        <Grid container spacing={2.5}>
           {filteredPeople.map((person) => (
             <CardContainer
               item
-              xs={6}
+              xs={12}
               sm={6}
-              md={6}
+              lg={4}
               key={person.id}
               className={removingPersonId === person.id ? 'removing' : ''}
             >
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  boxShadow: 3,
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: 6,
-                  },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                }}
-              >
-                <CardContent
-                  sx={{
-                    padding: 3,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 2,
-                  }}
-                >
-                  <Avatar
-                    alt={person.name}
-                    src="/default-avatar.jpg"
-                    sx={{ width: 80, height: 80 }}
-                  />
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 'bold', color: '#2c3e50', textAlign: 'center' }}
-                  >
-                    {person.name}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {person.email || 'Email não informado'}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    Telefone: {person.phoneNumber || 'Não informado'}
-                  </Typography>
-                </CardContent>
-
-                <Box
-                  sx={{
-                    padding: 2,
-                    borderTop: '1px solid #ddd',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="small"
-                    onClick={() => handleOpenModal(person)}
-                    sx={{
-                      borderRadius: 20,
-                      padding: '6px 16px',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    size="small"
-                    onClick={() => handleDeletePerson(person.id!, person.name)}
-                    sx={{
-                      borderRadius: 20,
-                      padding: '6px 16px',
-                      fontSize: '0.9rem',
-                    }}
-                  >
-                    Excluir
-                  </Button>
-                </Box>
-              </Card>
+              <PersonCard
+                name={person.name}
+                email={person.email}
+                phone={person.phoneNumber}
+                document={person.document}
+                onEdit={() => handleOpenModal(person)}
+                onDelete={() => handleDeletePerson(person.id!, person.name)}
+              />
             </CardContainer>
           ))}
         </Grid>

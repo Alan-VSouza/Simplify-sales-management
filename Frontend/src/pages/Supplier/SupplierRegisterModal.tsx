@@ -32,7 +32,8 @@ const Card = styled(MuiCard)(({ theme }) => ({
   padding: theme.spacing(3),
   gap: theme.spacing(1.5),
   boxSizing: 'border-box',
-  boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.1), 0px 15px 35px -5px rgba(0, 0, 0, 0.05)',
+  boxShadow: 'none',
+  border: 'none',
   maxWidth: '100%',
 }));
 
@@ -46,11 +47,11 @@ const ModalContainer = styled(Box)(({ theme }) => ({
   maxHeight: '90vh',
   backgroundColor: theme.palette.background.paper,
   boxShadow: theme.shadows[24],
-  borderRadius: theme.spacing(1),
+  borderRadius: 20,
   outline: 'none',
   overflowY: 'auto',
   overflowX: 'hidden',
-  padding: theme.spacing(2),
+  padding: theme.spacing(1),
   boxSizing: 'border-box',
   animation: `${fadeIn} 0.3s ease-out`,
 }));

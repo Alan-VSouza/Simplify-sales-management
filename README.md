@@ -4,9 +4,11 @@ A web system for a micro-enterprise with three employees to manage sales and pur
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-| Products | Transaction details |
+| Products | Stock |
 | :-: | :-: |
-| ![Products](docs/screenshots/products.png) | ![Transaction details](docs/screenshots/transaction-details.png) |
+| ![Products](docs/screenshots/products.png) | ![Stock](docs/screenshots/stock.png) |
+| **Transaction details** | **Login** |
+| ![Transaction details](docs/screenshots/transaction-details.png) | ![Login](docs/screenshots/login.png) |
 
 *Screenshots use fictional demo data.*
 
