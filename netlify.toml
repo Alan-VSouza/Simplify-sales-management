@@ -1,0 +1,9 @@
+# Public demo: front end only, with an in-browser fake API (see Frontend/src/demo).
+[build]
+  base = "Frontend"
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  VITE_DEMO = "true"
+  NODE_VERSION = "20"

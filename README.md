@@ -1,5 +1,9 @@
 # Simplify Sales Management
 
+[![Live demo](https://img.shields.io/badge/Live%20demo-simplify--sales--demo--alan.netlify.app-00C7B7?style=for-the-badge&logo=netlify&logoColor=white)](https://simplify-sales-demo-alan.netlify.app)
+
+> The demo runs entirely in the browser with fictional data (no server): every screen works, and **Restaurar dados** resets it. To run with the real ASP.NET Core API, see the setup below.
+
 A web system for a micro-enterprise with three employees to manage sales and purchases. It centralizes product, supplier and client registration, stock control, transactions and user login in a single application.
 
 ![Dashboard](docs/screenshots/dashboard.png)
